@@ -1,0 +1,81 @@
+---
+title: "Winnipeg Jets 2024–25 Player Performance"
+author: "Liem Vu"
+date: "2025-07-19"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+```
+
+```{r}
+data <- read_csv("jets_24_25_player_stats.csv", show_col_types = FALSE)
+cleaned <- data %>%
+  select(Player, GP, G, A, PTS) %>%
+  filter(!is.na(PTS), GP > 0) %>%
+  mutate(
+    Player = as.factor(Player),
+    PointsPerGame = PTS / GP
+  )
+cleaned
+```
+
+1. Top 10 Players with highest Points
+```{r}
+top10_pts <- cleaned %>%
+  arrange(desc(PTS)) %>%
+  slice(1:10)
+
+ggplot(top10_pts, aes(x = reorder(Player, PTS), y = PTS)) +
+  geom_col(fill = "blue") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Winnipeg Jets Scorers (2024–25)",
+    x = "Player", y = "Total Points"
+  ) +
+  theme_minimal()
+```
+
+2. Points per Game
+```{r}
+top10_ppg <- cleaned %>% slice_max(PointsPerGame, n = 10)
+
+ggplot(top10_ppg, aes(x = Player, y = PointsPerGame)) +
+  geom_col(fill = "forestgreen") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Players by Points per Game",
+    x = "Player", y = "Points/Game"
+  ) +
+  theme_minimal()
+```
+
+3. Goals vs Assists Comparison
+```{r}
+top10_ga <- cleaned %>% slice_max(PTS, n = 10)
+
+ggplot(top10_ga, aes(x = reorder(Player, G))) +
+  geom_col(aes(y = G), fill = "orange") +
+  geom_point(aes(y = A), color = "blue", size = 3) +
+  coord_flip() +
+  labs(
+    title = "Top 10 Players: Goals vs Assists",
+    x = "Player", y = "Goals (bar) vs Assists (dot)"
+  ) +
+  theme_minimal()
+```
+
+4. Points vs Games Played (Consistency)
+```{r}
+ggplot(cleaned, aes(x = GP, y = PTS)) +
+  geom_point(color = "red", size = 2) +
+  geom_smooth(method = "lm", color = "gray") +
+  labs(
+    title = "Total Points vs Games Played",
+    x = "Games Played", y = "Total Points"
+  ) +
+  theme_minimal()
+```
